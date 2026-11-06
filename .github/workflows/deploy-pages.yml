@@ -28,9 +28,9 @@ jobs:
 
       - name: Prepare static site
         run: |
-          mkdir -p _site/assets
+          mkdir -p _site
           cp index.html styles.css app.js .nojekyll _site/
-          cp assets/hero-garden.webp _site/assets/
+          cp -R assets _site/
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
