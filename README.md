@@ -13,16 +13,16 @@ Hoặc mở `index.html` trực tiếp (một số trình duyệt có thể hạ
 
 ## GitHub Pages
 
-Website demo (sau khi bật Pages): **https://hanfun.github.io/parcheesi/**
+Website demo (sau khi bật Pages): **https://hanfun.github.io/parcheesi/**.
 
-Bước bật lần đầu (chủ repository thực hiện):
+**Đã có GitHub Actions tự động deploy tại [`.github/workflows/deploy-pages.yml`](./.github/workflows/deploy-pages.yml)**. Người sở hữu repository cần thực hiện bật GitHub Pages lần đầu:
 
-1. Truy cập [Settings → Pages](https://github.com/hanfun/parcheesi/settings/pages).
-2. Ở **Build and deployment → Source**, chọn **Deploy from a branch**.
-3. Chọn nhánh **main** và thư mục **/(root)**, sau đó nhấn **Save**.
-4. Vào trang [Actions](https://github.com/hanfun/parcheesi/actions) để xem trạng thái publish; khi triển khai hoàn tất, mở link demo ở trên.
+1. Mở [Settings → Pages](https://github.com/hanfun/parcheesi/settings/pages).
+2. Trong **Build and deployment → Source**, chọn **GitHub Actions** (không chọn `Deploy from a branch`).
+3. Mở [Actions → Deploy HTML UI to GitHub Pages](https://github.com/hanfun/parcheesi/actions/workflows/deploy-pages.yml) và chọn **Run workflow** (nhánh `main`) nếu workflow chưa chạy thành công.
+4. Mở URL demo khi trang Actions báo đã deploy thành công.
 
-Ứng dụng dùng đường dẫn assets tương đối (`./styles.css`, `./app.js`, `./assets/hero-garden.webp`), không cần build. File `.nojekyll` tránh xử lý Jekyll không cần thiết. Những lần cập nhật lên `main` sẽ được tự triển khai lại sau khi Pages được bật. Demo **không dùng Firebase** và chưa có tính năng multiplayer thật.
+Workflow không cần `npm install` và chỉ publish các file tĩnh `index.html`, `styles.css`, `app.js`, `.nojekyll` và `assets/hero-garden.webp` để tránh xuất bản các tài liệu nội bộ. **Không có Firebase hoặc multiplayer thật** ở phiên bản UI này.
 
 ## Màn hình
 
