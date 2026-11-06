@@ -2,6 +2,7 @@
 
 > Repository: [hanfun/parcheesi](https://github.com/hanfun/parcheesi)  
 > Tài liệu tổng thể: [PLAN.md](./PLAN.md)  
+> Đặc tả âm thanh theo event, roadmap cho Codex: [docs/AUDIO-SPEC.md](./docs/AUDIO-SPEC.md)  
 > Cập nhật: 05/11/2026  
 > Trạng thái hiện tại: **Chưa bắt đầu triển khai theo kế hoạch**  
 > **Quy tắc:** Giai đoạn hiện tại chỉ làm **thiết kế giao diện + đặc tả luật**, chưa viết logic game, chưa cấu hình Firebase, chưa deploy.
@@ -56,6 +57,7 @@
 - [ ] **A1.12** Mô tả trạng thái tương tác: chờ gieo, đang gieo, chọn quân, di chuyển, đá quân, đổi lượt, kết thúc.
 - [ ] **A1.13** Kiểm tra bố cục ở mobile portrait/landscape, tablet, desktop; tránh bàn cờ bị méo.
 - [ ] **A1.14** Viết `docs/UI-SPEC.md`: màn hình, component, responsive, trạng thái, tiêu chí UX.
+- [ ] **A1.15** Duyệt âm thanh/nhạc game theo [AUDIO-SPEC.md](./docs/AUDIO-SPEC.md): sound moodboard, ID sự kiện, volume/mute, ưu tiên Cơ bản → Vui nhộn; **chưa làm SFX thật**.
 - [ ] **A1.GATE** **DUYỆT UX/UI**: người dùng duyệt mockup desktop/mobile và danh mục màn hình P0 **trước khi làm UI thật**.
 
 **Đầu ra:** `docs/UI-SPEC.md` + wireframe/mẫu giao diện có thể xem và duyệt.  
