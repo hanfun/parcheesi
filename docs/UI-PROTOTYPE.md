@@ -37,3 +37,16 @@
 - Tách sang React/Vite/TypeScript khi được duyệt.
 
 **Không đánh dấu các milestone M1/M2/M3 là hoàn thành chỉ vì UI demo đã tạo.**
+
+## Cập nhật giao diện bàn cờ — v0.3 (06/11/2026)
+
+- Thêm hai nút chọn **Bàn cờ cơ bản** / **Bàn cờ vui nhộn** ngay tại màn hình in-game; đây là **chuyển chế độ xem prototype**, không thay đổi luật của trận thật.
+- Thay các biểu tượng 🐴 trong 4 ô chuồng bằng 16 quân ngựa chibi SVG có khuôn mặt/avatar người chơi, chia bốn màu xanh dương, xanh lá, đỏ, vàng.
+- Dựng lại bàn cờ theo phong cách mô hình đồ chơi 3D bằng CSS: khung gỗ, ô nổi, chuồng nổi, cờ góc, cúp đích, hoa/cỏ trang trí.
+- Chế độ cơ bản: bảng lượt, xúc xắc, tiến độ các người chơi, mục tiêu hoàn thành 4 ngựa.
+- Chế độ vui nhộn: ô đặc biệt 💣 ⭐ 🍀 🚀 ❓ 🎁, bảng skill có hồi chiêu và câu thoại hài; **đây mới là minh họa UI**.
+- Có nút **Xem bàn cờ** ở trang chủ để xem cả hai chế độ mà không cần đăng nhập demo.
+- Mobile portrait-first; ẩn bottom navigation khi trong game; màn ngang thấp hiển thị hướng dẫn xoay dọc.
+- Tham chiếu hình ảnh được duyệt: [`../mockups/approved-chibi-3d-avatar.webp`](../mockups/approved-chibi-3d-avatar.webp).
+
+**Chưa triển khai:** luật thật, di chuyển/quay xúc xắc hợp lệ, đặt bẫy server, tính điểm, multiplayer và Firebase. Không coi mockup minh họa là định nghĩa đường đi thật của Cờ Cá Ngựa Việt Nam.

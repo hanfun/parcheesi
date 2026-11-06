@@ -34,16 +34,16 @@ const defaultState = {
  currentRoom:null,roomFilter:'all',query:'',rankFilter:'score',mode:'basic',map:'garden',
  create:{name:'Phòng Của Tôi',password:'',mode:'basic',max:4,stake:100,time:30,reward:'50-30-20-0',map:'garden'},
  skin:'funny',lobbyReady:false,live:false,dice:1,diceRolls:0,skillUsed:false,dialog:null,
- localRooms:[]
+ gamePreviewMode:'basic', localRooms:[]
 };
 const app=document.querySelector('#app');
 let state={...defaultState};
 try { const v=JSON.parse(localStorage.getItem(STORAGE)||'{}'); state={...state,...v,create:{...defaultState.create,...(v.create||{})},view:'home',currentRoom:null,live:false,lobbyReady:false}; }catch{}
 function save(){
-  const {name,avatar,score,signedIn,skin,mode,map,create,localRooms}=state;
+  const {name,avatar,score,signedIn,skin,mode,map,create,localRooms,gamePreviewMode}=state;
   // Never persist passwords or authentication claims: sign-in is only a transient demo session.
   const safeCreate={...create,password:''};
-  localStorage.setItem(STORAGE,JSON.stringify({name,avatar,score,skin,mode,map,create:safeCreate,localRooms:localRooms.map(({password,...r})=>r)}));
+  localStorage.setItem(STORAGE,JSON.stringify({name,avatar,score,skin,mode,map,create:safeCreate,localRooms:localRooms.map(({password,...r})=>r),gamePreviewMode}));
 }
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=n=>Number(n||0).toLocaleString('vi-VN');
@@ -77,15 +77,15 @@ function horseToken(color='blue',username=state.name){
  const src=state.avatar&&username===state.name?`<img src="${state.avatar}" alt=""/>`:`<span>${esc((username||'H').slice(0,1).toUpperCase())}</span>`;
  return `<div class="horse-token" style="--token-color:${colors[color]};position:relative;width:100%;max-width:95px;margin:auto">${horseSVG(color)}<span class="horse-face" style="position:absolute;left:42%;top:31%;width:25%;aspect-ratio:1;border:2px solid white;border-radius:50%;background:#fff5e7;display:grid;place-items:center;overflow:hidden;box-shadow:0 2px 5px #6c729944;font-size:13px;font-weight:900;color:#745489">${src}</span></div>`;
 }
-function mapSquares(mapId='garden'){
+function mapSquares(mapId='garden', inGame=false){
  const type=gameMaps.find(x=>x.id===mapId)?.mode||'basic';
  const items=[];
  for(let r=0;r<15;r++){for(let c=0;c<15;c++){
    let cls='square ',symbol='';
-   if(r<6&&c<6){cls+='home-blue';if((r===2||r===4)&&(c===2||c===4))symbol='🐴';}
-   else if(r<6&&c>8){cls+='home-green';if((r===2||r===4)&&(c===10||c===12))symbol='🐴';}
-   else if(r>8&&c<6){cls+='home-red';if((r===10||r===12)&&(c===2||c===4))symbol='🐴';}
-   else if(r>8&&c>8){cls+='home-yellow';if((r===10||r===12)&&(c===10||c===12))symbol='🐴';}
+   if(r<6&&c<6){cls+='home-blue';if(!inGame&&(r===2||r===4)&&(c===2||c===4))symbol='🐴';}
+   else if(r<6&&c>8){cls+='home-green';if(!inGame&&(r===2||r===4)&&(c===10||c===12))symbol='🐴';}
+   else if(r>8&&c<6){cls+='home-red';if(!inGame&&(r===10||r===12)&&(c===2||c===4))symbol='🐴';}
+   else if(r>8&&c>8){cls+='home-yellow';if(!inGame&&(r===10||r===12)&&(c===10||c===12))symbol='🐴';}
    else if(r>=6&&r<=8&&c>=6&&c<=8){cls+='center';symbol=(r===7&&c===7)?'🏆':'';}
    else {
      cls+='path';
@@ -100,7 +100,13 @@ function mapSquares(mapId='garden'){
    }
    items.push(`<div class="${cls}" data-cell="${r}-${c}">${symbol?`<span class="token" aria-hidden="true">${symbol}</span>`:''}</div>`);
  }}
- return `<div class="map-preview" role="img" aria-label="Bàn Cờ Cá Ngựa minh họa ${esc(type)} gồm bốn màu">${items.join('')}</div>`;
+ const horses=inGame?`<div class="board-overlay" aria-hidden="true">${[
+  ['blue',state.name,'Góc xanh','🟦'],
+  ['green','MinaCute','Góc xanh lá','🟩'],
+  ['red','TuanIT','Góc đỏ','🟥'],
+  ['yellow','Cherry','Góc vàng','🟨'],
+ ].map(([color,player,name,emoji])=>`<div class="stable stable-${color}"><div class="stable-heading"><span>${emoji} ${esc(name)}</span></div><div class="stable-horses">${Array.from({length:4},()=>`<div class="board-pony">${horseToken(color,player)}</div>`).join('')}</div><span class="stable-flag">${({blue:'⚑',green:'⚑',red:'⚑',yellow:'⚑'})[color]}</span></div>`).join('')}<div class="goal-plinth"><span>🏆</span><small>ĐÍCH</small></div></div>`:'';
+ return `<div class="map-preview ${inGame?'map-live':''}" role="img" aria-label="Bàn Cờ Cá Ngựa minh họa ${esc(type)} gồm bốn màu">${items.join('')}${horses}</div>`;
 }
 function header(){
  const titles={home:'Vương quốc ngựa con',auth:'Tài khoản',rooms:'Danh sách phòng',create:'Tạo phòng mới',maps:'Chọn bản đồ',profile:'Hồ sơ của bạn',ranking:'Bảng xếp hạng',lobby:'Phòng chờ',game:'Đang chơi'};
@@ -111,9 +117,9 @@ function sidebar(){return `<aside class="sidebar"><a href="#home" class="logo" d
 function bottomNav(){return `<nav class="bottom-nav" aria-label="Điều hướng điện thoại">${[['home','🏡','Trang chủ'],['rooms','🎮','Phòng'],['create','➕','Tạo'],['ranking','🏆','Top'],['profile','👤','Hồ sơ']].map(([id,icon,title])=>`<button type="button" data-nav="${id}" class="${state.view===id?'active':''}"><span>${icon}</span>${title}</button>`).join('')}</nav>`;}
 function notice(){return `<div class="notice">🧩 <span><strong>Prototype giao diện:</strong> Dữ liệu phòng, đăng nhập, điểm và xúc xắc chỉ mô phỏng trên trình duyệt; chưa tạo tài khoản thật hay giao dịch điểm.</span></div>`;}
 function home(){
- return `<section class="hero"><div class="hero-copy"><span class="tag green">🌼 Chào mừng đến thế giới vui nhộn</span><h2>Cờ Cá Ngựa<br/>thật là vui!</h2><p>Gặp gỡ những chú ngựa đáng yêu, chọn bản đồ kỳ diệu và cùng bạn bè tạo nên những kỷ niệm vui.</p><div class="hero-btns"><button class="btn btn-primary btn-lg" data-nav="rooms">🎮 Chơi ngay</button><button class="btn btn-blue btn-lg" data-nav="create">➕ Tạo phòng</button></div></div><div class="hero-illustration">${horseSVG('blue')}<span class="tiny-cloud a">☁️</span><span class="tiny-cloud b">✿ ✨</span></div></section>
+ return `<section class="hero"><div class="hero-copy"><span class="tag green">🌼 Chào mừng đến thế giới vui nhộn</span><h2>Cờ Cá Ngựa<br/>thật là vui!</h2><p>Gặp gỡ những chú ngựa đáng yêu, chọn bản đồ kỳ diệu và cùng bạn bè tạo nên những kỷ niệm vui.</p><div class="hero-btns"><button class="btn btn-primary btn-lg" data-nav="rooms">🎮 Chơi ngay</button><button class="btn btn-blue btn-lg" data-nav="create">➕ Tạo phòng</button><button class="btn btn-violet btn-lg" data-action="preview-basic">👀 Xem bàn cờ</button></div></div><div class="hero-illustration">${horseSVG('blue')}<span class="tiny-cloud a">☁️</span><span class="tiny-cloud b">✿ ✨</span></div></section>
  <div class="features"><div class="feature-card"><span class="feature-emoji">🦄</span><div><strong>Ngựa có khuôn mặt bạn</strong><small>Avatar xuất hiện trên đầu ngựa</small></div></div><div class="feature-card"><span class="feature-emoji">🍀</span><div><strong>Bản đồ thú vị</strong><small>Ô may mắn, tăng tốc và bất ngờ</small></div></div><div class="feature-card"><span class="feature-emoji">🏰</span><div><strong>Đấu vui cùng bạn bè</strong><small>Chế độ thường hoặc vui nhộn</small></div></div></div>
- <div class="section-heading"><div><h2>Khám phá thế giới ngựa con</h2><p>Chọn điểm đến yêu thích của bạn</p></div></div><div class="quick-actions"><button class="quick-action" data-nav="maps"><span>🗺️</span><div><b>Chọn bản đồ</b><small>Khám phá 6 khu vườn</small></div></button><button class="quick-action" data-nav="ranking"><span>🏆</span><div><b>Vinh danh cao thủ</b><small>Bảng xếp hạng ngựa con</small></div></button><button class="quick-action" data-nav="profile"><span>🪄</span><div><b>Tùy chỉnh avatar</b><small>Gắn khuôn mặt lên ngựa</small></div></button></div>`;
+ <div class="section-heading"><div><h2>Khám phá thế giới ngựa con</h2><p>Chọn điểm đến yêu thích của bạn</p></div></div><div class="quick-actions"><button class="quick-action" data-action="preview-fun"><span>🎭</span><div><b>Thử map vui nhộn</b><small>Xem bẫy và skill 4 màu</small></div></button><button class="quick-action" data-nav="maps"><span>🗺️</span><div><b>Chọn bản đồ</b><small>Khám phá 6 khu vườn</small></div></button><button class="quick-action" data-nav="ranking"><span>🏆</span><div><b>Vinh danh cao thủ</b><small>Bảng xếp hạng ngựa con</small></div></button><button class="quick-action" data-nav="profile"><span>🪄</span><div><b>Tùy chỉnh avatar</b><small>Gắn khuôn mặt lên ngựa</small></div></button></div>`;
 }
 function auth(){
  return `<div class="auth-layout"><div class="auth-visual"><div>${horseSVG('red')}</div><div><h2>Chào bạn mới!</h2><p>Cùng nhau khám phá vương quốc ngựa con 🌈</p></div></div><div class="card auth-form"><div class="auth-tabs"><button class="auth-tab ${state.authTab==='login'?'active':''}" data-auth-tab="login">Đăng nhập</button><button class="auth-tab ${state.authTab==='register'?'active':''}" data-auth-tab="register">Tạo tài khoản</button></div><h2>${state.authTab==='login'?'Mừng bạn quay lại!':'Bắt đầu chuyến phiêu lưu'}</h2><p class="muted small" style="margin:0">Đây là mẫu tương tác. Không gửi mật khẩu lên máy chủ.</p><form id="auth-form" class="stack">${state.authTab==='register'?`<div class="field"><label for="name-auth">Tên người chơi</label><input required minlength="2" maxlength="24" id="name-auth" name="displayName" autocomplete="nickname" placeholder="Ví dụ: Ngựa Con Vui Vẻ"/></div>`:''}<div class="field"><label for="email-auth">Email</label><input required type="email" id="email-auth" name="email" autocomplete="email" placeholder="ban@example.com"/></div><div class="field"><label for="password-auth">Mật khẩu</label><input required minlength="6" type="password" id="password-auth" name="password" autocomplete="${state.authTab==='login'?'current-password':'new-password'}" placeholder="Ít nhất 6 ký tự"/></div>${state.authTab==='register'?`<div class="field"><label for="confirm-auth">Nhập lại mật khẩu</label><input required minlength="6" type="password" id="confirm-auth" name="confirm" autocomplete="new-password" placeholder="Nhập lại mật khẩu"/></div>`:''}<button class="btn btn-primary btn-full btn-lg" type="submit">${state.authTab==='login'?'🔓 Xem bản demo đã đăng nhập':'✨ Tạo tài khoản demo'}</button></form><button class="google-btn" data-action="google">🌈 Tiếp tục với Google (sắp có)</button><div class="auth-footnote">Đăng ký thật, quên mật khẩu và Google sẽ được triển khai khi tích hợp Firebase.</div></div></div>`;
@@ -148,8 +154,35 @@ function lobby(){
  return `${notice()}<div class="section-heading"><div><h2>🏡 ${esc(room.name)}</h2><p>Mã phòng ${esc(room.id)} · Chế độ ${modes[room.mode]}</p></div><button class="btn btn-soft btn-sm" data-action="leave-lobby">Rời phòng</button></div><div class="cols-2"><section class="card stack"><h2>👥 Các vị trí trong phòng</h2><div class="lobby-players">${Array.from({length:room.max},(_,i)=>{const p=players[i];return `<div class="player-seat ${p?'occupied':''} ${p?.ready?'ready':''}">${p?(p.avatar?`<span class="avatar">${p.avatar}</span>`:renderAvatar())+'<span>'+esc(p.name)+'</span><span class="tag '+(p.ready?'green':'yellow')+'">'+(p.ready?'✓ Sẵn sàng':'⏳ Chưa sẵn sàng')+'</span>':`<span style="font-size:32px">➕</span><span>Đang chờ…</span>`}</div>`;}).join('')}</div><div class="lobby-summary"><div class="summary-item">Chế độ<b>${modes[room.mode]}</b></div><div class="summary-item">Điểm / người<b>⭐ ${fmt(room.stake)}</b></div><div class="summary-item">Bản đồ<b>${esc(gameMaps.find(m=>m.id===room.map)?.name)}</b></div><div class="summary-item">Người chơi<b>${room.max} người tối đa</b></div></div><button class="btn ${state.lobbyReady?'btn-soft':'btn-mint'}" data-action="toggle-ready">${state.lobbyReady?'✓ Đã sẵn sàng (bấm để hủy)':'✅ Tôi đã sẵn sàng'}</button><button class="btn btn-primary" data-action="start-demo">🐴 Xem thử màn hình trong game</button><p class="small muted">Nút “Xem thử” chỉ mở UI bàn cờ. Chưa có ghép phòng, xử lý cược điểm hoặc luật chơi online.</p></section><section class="card stack"><h2>🗺️ Bản đồ đã chọn</h2><div class="mini-map">${mapSquares(room.map)}</div><button class="btn btn-blue btn-sm" data-action="copy-code">📋 Copy mã phòng ${esc(room.id)}</button><p class="muted small">Khi triển khai online, hệ thống sẽ có ready-check, đồng bộ phòng và tự dọn phòng sau khi không còn ai.</p></section></div>`;
 }
 function game(){
- const room=state.currentRoom||{mode:state.create.mode,map:state.create.map,max:state.create.max,name:'Trận đấu demo',stake:0};
- return `<div class="rotate-alert"><div><div class="rotate-icon">📱↩️</div><h2>Xoay điện thoại dọc nhé!</h2><p>Để bàn cờ và các nút chơi dễ nhìn hơn 🌷</p><button class="btn btn-violet" data-action="leave-game">Quay về phòng</button></div></div><div class="section-heading"><div><h2>🎲 ${esc(room.name)}</h2><p>Chế độ ${modes[room.mode]} · Màn hình trong game ưu tiên dọc</p></div><button class="btn btn-soft btn-sm" data-action="leave-game">Thoát demo</button></div><div class="game-layout"><div class="stack"><div class="game-players">${[{name:state.name,color:'blue'},{name:'MinaCute',color:'green'},{name:'TuanIT',color:'red'},{name:'Cherry',color:'yellow'}].slice(0,room.max).map((p,i)=>`<div class="game-player ${i===0?'active':''}">${i===0?renderAvatar():`<span class="avatar">${['🐱','👨🏻','👧🏻'][i-1]}</span>`}<div>${esc(p.name)}<div class="muted" style="font-size:10px">${i===0?'🎲 Đến lượt bạn':'🐴 Đang chờ'}</div></div></div>`).join('')}</div><div class="game-board">${mapSquares(room.map)}</div></div><div class="card game-controls"><div class="dice" id="dice" aria-label="Xúc xắc hiện ${state.dice}">${['','⚀','⚁','⚂','⚃','⚄','⚅'][state.dice]}</div><div class="stack" style="width:100%"><h2 style="font-size:21px">Lượt của ${esc(state.name)}</h2><button class="btn btn-primary btn-full" data-action="roll-dice">🎲 Tung xúc xắc</button></div><div class="game-status">${state.diceRolls?`Bạn vừa tung được ${state.dice} 🎉`:'Nhấn “Tung xúc xắc” để xem hiệu ứng demo!'}</div>${room.mode==='fun'?`<div class="skill-panel" style="width:100%"><span>✨ Skill ngựa xanh: Lá chắn</span><button class="btn btn-violet btn-sm" data-action="demo-skill" ${state.skillUsed?'disabled':''}>${state.skillUsed?'Đang hồi':'Dùng thử'}</button></div>`:''}<div class="game-actions"><button class="btn btn-soft btn-sm" data-action="game-emote">😆 Câu thoại vui</button><button class="btn btn-soft btn-sm" data-nav="profile">🦄 Avatar ngựa</button></div><p class="small muted" style="margin:0">Chưa xử lý luật đi, skill, đá ngựa hoặc điểm. Đây là bản xem trước UI.</p></div></div>`;
+ const room=state.currentRoom||{mode:state.create.mode,map:state.create.map,max:state.create.max,name:'Thử bàn cờ chibi',stake:0};
+ const previewMode=state.gamePreviewMode||room.mode||'basic';
+ const previewMap=((gameMaps.find(m=>m.id===room.map&&m.mode===previewMode))||gameMaps.find(m=>m.mode===previewMode)||gameMaps[0]).id;
+ const players=[{name:state.name,color:'blue'},{name:'MinaCute',color:'green'},{name:'TuanIT',color:'red'},{name:'Cherry',color:'yellow'}].slice(0,room.max);
+ const order=[
+  {name:state.name,label:'Đang lượt • Còn 22s',progress:78,rank:'Tạm dẫn đầu',color:'blue',avatar:renderAvatar()},
+  {name:'MinaCute',label:'1 ngựa gần về đích',progress:66,rank:'Bám sát',color:'green',avatar:'<span class="avatar">👧🏻</span>'},
+  {name:'TuanIT',label:'2 ngựa đang chạy',progress:54,rank:'Ổn định',color:'red',avatar:'<span class="avatar">👨🏻</span>'},
+  {name:'Cherry',label:'Chờ vận may',progress:35,rank:'Đang hồi skill',color:'yellow',avatar:'<span class="avatar">🍒</span>'},
+ ].slice(0,room.max);
+ const basicPanel=`<div class="mode-banner basic"><div><b>🎯 Chế độ cơ bản</b><p>Chơi đúng luật truyền thống, không có bẫy hay skill.</p></div><span class="tag blue">Map thường</span></div>
+ <div class="mini-stats"><div class="mini-stat"><span>⭐ Điểm / ván</span><b>${fmt(room.stake)}</b></div><div class="mini-stat"><span>⏳ Thời gian lượt</span><b>${state.create.time||30}s</b></div><div class="mini-stat"><span>🏆 Mục tiêu</span><b>Về đích đủ 4 ngựa</b></div></div>
+ <div class="turn-panel"><div class="dice" id="dice" aria-label="Xúc xắc hiện ${state.dice}">${['','⚀','⚁','⚂','⚃','⚄','⚅'][state.dice]}</div><div class="turn-right"><span class="small muted">Lượt hiện tại: <strong>${esc(state.name)}</strong></span><button class="btn btn-primary btn-full" data-action="roll-dice">🎲 Tung xúc xắc</button></div></div>
+ <div class="game-status">${state.diceRolls?`Bạn vừa tung được ${state.dice} 🎉 Hãy chọn quân ngựa muốn di chuyển.`:'Nhấn “Tung xúc xắc” để xem hiệu ứng demo ở chế độ cơ bản!'}</div>
+ <div class="legend-card"><h3>📍 Ghi chú bàn cờ</h3><div class="legend-grid"><div><span>🛡️</span> Ô an toàn</div><div><span>🏠</span> Chuồng ngựa</div><div><span>🏆</span> Đích đến</div><div><span>🎲</span> Không có skill</div></div></div>
+ <div class="race-list">${order.map((p,i)=>`<div class="race-item ${i===0?'active':''}"><div class="race-head">${p.avatar}<div><b>${esc(p.name)}</b><small>${esc(p.rank)}</small></div><span class="race-percent">${p.progress}%</span></div><div class="progress"><span style="width:${p.progress}%;background:${colors[p.color]}"></span></div><small class="muted">${esc(p.label)}</small></div>`).join('')}</div>`;
+ const funPanel=`<div class="mode-banner fun"><div><b>🎉 Chế độ vui nhộn</b><p>Có ô bẫy, ô may mắn và skill theo màu ngựa.</p></div><span class="tag pink">Map vui nhộn</span></div>
+ <div class="event-ribbon"><span class="chip green">🍀 Đi tiếp +2</span><span class="chip yellow">⭐ Nhận vận may</span><span class="chip orange">💣 Dính bẫy</span><span class="chip violet">🚀 Tăng tốc</span></div>
+ <div class="turn-panel"><div class="dice" id="dice" aria-label="Xúc xắc hiện ${state.dice}">${['','⚀','⚁','⚂','⚃','⚄','⚅'][state.dice]}</div><div class="turn-right"><span class="small muted">Lượt hiện tại: <strong>${esc(state.name)}</strong></span><button class="btn btn-primary btn-full" data-action="roll-dice">🎲 Tung xúc xắc</button></div></div>
+ <div class="game-status">${state.diceRolls?`Bạn vừa tung được ${state.dice} 🎉 Có thể kích hoạt thêm một hiệu ứng vui nhộn.`:'Nhấn “Tung xúc xắc” để xem hiệu ứng demo ở chế độ vui nhộn!'}</div>
+ <div class="skill-rack">${[
+   ['blue','🛡️ Lá chắn','Hồi 3 lượt','Chặn 1 lần bị đá'],
+   ['green','🌪️ Lướt gió','Hồi 4 lượt','Tiến thêm tối đa 3 ô'],
+   ['red','🔥 Tăng tốc','Hồi 3 lượt','Cộng thêm 2 bước'],
+   ['yellow','🎯 May mắn','Hồi 4 lượt','Tung lại xúc xắc'],
+ ].slice(0,room.max).map((s,i)=>`<div class="skill-card ${i===0?'selected':''}"><div class="skill-top"><span class="skill-color" style="background:${colors[s[0]]}"></span><b>${s[1]}</b></div><small>${s[2]}</small><p>${s[3]}</p>${i===0?`<button class="btn btn-violet btn-sm" data-action="demo-skill" ${state.skillUsed?'disabled':''}>${state.skillUsed?'Đang hồi':'Dùng thử'}</button>`:'<button class="btn btn-soft btn-sm" disabled>Đối thủ</button>'}</div>`).join('')}</div>
+ <div class="legend-card"><h3>🪄 Ô đặc biệt trên map</h3><div class="legend-grid special"><div><span>💣</span> Mìn / lựu đạn</div><div><span>❓</span> Bí ẩn</div><div><span>🍀</span> Ô may mắn</div><div><span>🚀</span> Tăng tốc</div><div><span>🎁</span> Quà tặng</div><div><span>💥</span> Nổ bật về chuồng</div></div></div>
+ <div class="bubble-card">💬 “Ủa alo? Tui đang đi bình thường mà!” — câu thoại vui hiện khi ngựa bị đá.</div>`;
+ return `<div class="rotate-alert"><div><div class="rotate-icon">📱↩️</div><h2>Xoay điện thoại dọc nhé!</h2><p>Để bàn cờ và các nút chơi dễ nhìn hơn 🌷</p><button class="btn btn-violet" data-action="leave-game">Quay về phòng</button></div></div><div class="section-heading"><div><h2>🎲 ${esc(room.name)}</h2><p>Chế độ ${modes[previewMode]} · Màn hình trong game ưu tiên dọc</p></div><button class="btn btn-soft btn-sm" data-action="leave-game">Thoát demo</button></div><div class="game-mode-tabs"><button class="segment ${previewMode==='basic'?'active':''}" data-game-mode="basic">🎲 Bàn cờ cơ bản</button><button class="segment ${previewMode==='fun'?'active':''}" data-game-mode="fun">✨ Bàn cờ vui nhộn</button></div><div class="game-layout"><div class="stack"><div class="game-players">${players.map((p,i)=>`<div class="game-player ${i===0?'active':''}">${i===0?renderAvatar():`<span class="avatar">${['🐱','👨🏻','👧🏻'][i-1]}</span>`}<div>${esc(p.name)}<div class="muted" style="font-size:10px">${i===0?'🎲 Đến lượt bạn':'🐴 Đang chờ'}</div></div></div>`).join('')}</div><div class="game-board-wrap"><div class="board-heading"><div><b>${previewMode==='basic'?'Bản đồ thường':'Bản đồ vui nhộn'}</b><small>${esc(gameMaps.find(m=>m.id===previewMap)?.name||'')}</small></div><span class="tag ${previewMode==='basic'?'blue':'pink'}">${previewMode==='basic'?'Không skill':'Có skill & bẫy'}</span></div><div class="game-board ${previewMode==='fun'?'fun-mode':''}">${mapSquares(previewMap,true)}</div></div></div><div class="card game-controls">${previewMode==='basic'?basicPanel:funPanel}<div class="game-actions"><button class="btn btn-soft btn-sm" data-action="game-emote">😆 Câu thoại vui</button><button class="btn btn-soft btn-sm" data-nav="profile">🦄 Avatar ngựa</button><button class="btn btn-soft btn-sm" data-nav="${state.currentRoom?'lobby':'home'}">🏡 ${state.currentRoom?'Về phòng chờ':'Về trang chủ'}</button></div><p class="small muted" style="margin:0">Đây là bản xem trước UI của 2 chế độ chơi. Chưa xử lý luật đi, đá ngựa, kỹ năng hay điểm thật.</p></div></div>`;
 }
 function render(){
  const views={home,auth,rooms,create,maps,profile,ranking,lobby,game};
@@ -161,7 +194,7 @@ function toast(text){
  const holder=document.querySelector('#toast-root');holder.textContent='';const d=document.createElement('div');d.className='toast';d.textContent=text;holder.appendChild(d);setTimeout(()=>{if(d.isConnected)d.remove()},3200);
 }
 function navigate(view){
- if(view==='lobby'&&!state.currentRoom)view='rooms';
+ if(view==='lobby'&&!state.currentRoom)view='home';
  if(view==='create'&&!state.signedIn){state.view='auth';state.authTab='login';render();toast('Để tạo phòng online, vui lòng mở giao diện tài khoản demo trước.');return;}
  if(view==='rooms'&&!state.signedIn){state.view='auth';state.authTab='login';render();toast('Để xem phòng online, vui lòng mở giao diện tài khoản demo trước.');return;}
  state.view=view;history.replaceState({},'',`#${view}`);render();window.scrollTo({top:0,behavior:'instant'});
@@ -180,14 +213,14 @@ function createRoom(form){
  const id='CN'+Math.random().toString(36).slice(2,6).toUpperCase();
  const c=state.create;
  const room={id,name,owner:state.name,mode:c.mode,count:1,max:c.max,stake:c.stake,locked:!!form.get('roomPassword'),password:String(form.get('roomPassword')||''),map:c.map,status:'waiting'};
- state.currentRoom=room;
+ state.currentRoom=room;state.gamePreviewMode=room.mode;
  state.localRooms.unshift({...room,password:undefined});
  save();navigate('lobby');toast('Đã tạo phòng demo trên thiết bị này 🌼');
 }
 function joinRoom(id){
  if(!state.signedIn){navigate('auth');return;}
  const room=[...state.localRooms,...starterRooms].find(r=>r.id===id);if(!room)return toast('Không tìm thấy phòng');
- const done=()=>{state.currentRoom={...room};state.lobbyReady=false;navigate('lobby');};
+ const done=()=>{state.currentRoom={...room};state.lobbyReady=false;state.gamePreviewMode=room.mode;navigate('lobby');};
  if(room.locked){modal('🔒','Phòng có mật khẩu','Bản mẫu UI chưa có server để xác thực mật khẩu phòng. Nhấn đồng ý để vào phòng mô phỏng.',done,'Để sau');}
  else done();
 }
@@ -225,17 +258,18 @@ app.addEventListener('submit',e=>{
  }
 });
 app.addEventListener('click',async e=>{
- const button=e.target.closest('button[data-nav],a[data-nav],button[data-action],button[data-auth-tab],button[data-room-filter],button[data-choice],button[data-select-map],button[data-skin],button[data-rank],button[data-join]');if(!button)return;
+ const button=e.target.closest('button[data-nav],a[data-nav],button[data-action],button[data-auth-tab],button[data-room-filter],button[data-choice],button[data-select-map],button[data-skin],button[data-rank],button[data-join],button[data-game-mode]');if(!button)return;
  if(button.dataset.nav){e.preventDefault();navigate(button.dataset.nav);return;}
  if(button.dataset.authTab){state.authTab=button.dataset.authTab;render();return;}
  if(button.dataset.roomFilter){state.roomFilter=button.dataset.roomFilter;render();return;}
  if(button.dataset.rank){state.rankFilter=button.dataset.rank;render();return;}
  if(button.dataset.skin){state.skin=button.dataset.skin;save();render();toast(`Đã chọn ngựa ${state.skin==='classic'?'Classic':'Funny'}`);return;}
+ if(button.dataset.gameMode){state.gamePreviewMode=button.dataset.gameMode;save();render();return;}
  if(button.dataset.selectMap){state.create.map=button.dataset.selectMap;save();render();return;}
  if(button.dataset.choice){
   const k=button.dataset.choice,v=button.dataset.value;
   state.create[k]=['stake','max','time'].includes(k)?Number(v):v;
-  if(k==='mode'){state.create.map=state.create.mode==='basic'?'garden':'candy';}
+  if(k==='mode'){state.create.map=state.create.mode==='basic'?'garden':'candy';state.gamePreviewMode=state.create.mode;}
   save();render();return;
  }
  if(button.dataset.join){joinRoom(button.dataset.join);return;}
@@ -246,8 +280,9 @@ app.addEventListener('click',async e=>{
  case 'copy-code':try{await navigator.clipboard.writeText(state.currentRoom?.id||'');toast('Đã sao chép mã phòng');}catch{toast(`Mã phòng: ${state.currentRoom?.id}`);}break;
  case 'leave-lobby':state.currentRoom=null;state.lobbyReady=false;navigate('rooms');break;
  case 'toggle-ready':state.lobbyReady=!state.lobbyReady;render();break;
- case 'start-demo':state.dice=1;state.diceRolls=0;state.skillUsed=false;navigate('game');break;
- case 'leave-game':modal('🏡','Rời bản xem trước','Đây là màn hình demo, chưa có trận đấu thật hay điểm bị trừ.',()=>navigate('lobby'));break;
+ case 'start-demo':state.dice=1;state.diceRolls=0;state.skillUsed=false;state.gamePreviewMode=state.currentRoom?.mode||state.create.mode||'basic';navigate('game');break;
+ case 'preview-basic':case 'preview-fun':{state.currentRoom=null;state.gamePreviewMode=act==='preview-fun'?'fun':'basic';state.dice=1;state.diceRolls=0;state.skillUsed=false;state.create.mode=state.gamePreviewMode;state.create.map=state.gamePreviewMode==='fun'?'candy':'garden';navigate('game');break;}
+ case 'leave-game':modal('🏡','Rời bản xem trước','Đây là màn hình demo, chưa có trận đấu thật hay điểm bị trừ.',()=>navigate(state.currentRoom?'lobby':'home'));break;
  case 'roll-dice':{
   const die=document.querySelector('#dice');die?.classList.add('spin');
   setTimeout(()=>{state.dice=1+Math.floor(Math.random()*6);state.diceRolls++;render();},540);break;
