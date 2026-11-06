@@ -291,3 +291,13 @@ Ví dụ **4 người × 100 điểm = quỹ 400 điểm**:
 ---
 
 **Quy tắc làm việc:** Đây là tài liệu lưu ý tưởng. Chỉ đánh dấu `[x]` trên `CHECKLIST.md` sau khi công việc đã thực hiện và được duyệt. Những thay đổi luật/map/điểm phải được chốt bằng văn bản trước khi triển khai.
+
+## 15. Mockup giao diện đã chốt (06/11/2026)
+
+**[ĐÃ CHỐT PHONG CÁCH]** Tham chiếu hình ảnh: [mockups/approved-chibi-3d-avatar.webp](./mockups/approved-chibi-3d-avatar.webp) và [mockups/README.md](./mockups/README.md).
+
+- Chọn **3D chibi dễ thương, mô hình đồ chơi mềm, bối cảnh thiên nhiên**, tránh cảm giác giao diện casino.
+- Hai bản đồ Cơ bản và Vui nhộn phải cùng phong cách mỹ thuật.
+- Avatar của người chơi hiển thị **trên khuôn mặt/đầu mỗi quân ngựa** (4 quân/người), trong cả hai bản đồ; bốn màu nhận diện rõ.
+- Bản đồ Vui nhộn có các loại ô đặc biệt (bẫy mìn, lựu đạn, may mắn, tăng tốc, dịch chuyển, về chuồng, bí ẩn); **vị trí và hiệu ứng cụ thể vẫn cần chốt**, không lấy ngẫu nhiên từ mockup.
+- Đây là **mockup tham chiếu đã duyệt về giao diện**, không phải code hoặc mô tả lộ trình luật chính xác.
