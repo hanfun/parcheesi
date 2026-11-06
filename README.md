@@ -11,6 +11,19 @@ python3 -m http.server 8080
 
 Hoặc mở `index.html` trực tiếp (một số trình duyệt có thể hạn chế module JS qua `file://`). Không cần `npm install`.
 
+## GitHub Pages
+
+Website demo (sau khi bật Pages): **https://hanfun.github.io/parcheesi/**
+
+Bước bật lần đầu (chủ repository thực hiện):
+
+1. Truy cập [Settings → Pages](https://github.com/hanfun/parcheesi/settings/pages).
+2. Ở **Build and deployment → Source**, chọn **Deploy from a branch**.
+3. Chọn nhánh **main** và thư mục **/(root)**, sau đó nhấn **Save**.
+4. Vào trang [Actions](https://github.com/hanfun/parcheesi/actions) để xem trạng thái publish; khi triển khai hoàn tất, mở link demo ở trên.
+
+Ứng dụng dùng đường dẫn assets tương đối (`./styles.css`, `./app.js`, `./assets/hero-garden.webp`), không cần build. File `.nojekyll` tránh xử lý Jekyll không cần thiết. Những lần cập nhật lên `main` sẽ được tự triển khai lại sau khi Pages được bật. Demo **không dùng Firebase** và chưa có tính năng multiplayer thật.
+
 ## Màn hình
 
 - Đăng nhập / tạo tài khoản (chỉ xác thực biểu mẫu giả lập, không gửi và không lưu mật khẩu).
