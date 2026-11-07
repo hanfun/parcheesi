@@ -77,8 +77,10 @@ test('đường chạy + lối vào chuồng liền nhau cho cả bốn màu',()
  for(const color of colors){
   for(let p=0;p<END;p++){
    const [r1,c1]=coordinate(color,p),[r2,c2]=coordinate(color,p+1);
-   assert.equal(Math.abs(r1-r2)+Math.abs(c1-c2),1,
+   assert.equal(Math.max(Math.abs(r1-r2),Math.abs(c1-c2)),1,
     `Đường đi ${color} bước ${p}->${p+1} không liền kề`);
+   // Bốn góc của đường đua nối chéo; đoạn rẽ vào chuồng phải đi ngang/dọc.
+   if(p===51) assert.equal(Math.abs(r1-r2)+Math.abs(c1-c2),1);
   }
  }
 });
