@@ -1,58 +1,64 @@
-# Cờ Cá Ngựa — giao diện HTML chibi 3D (Prototype)
+# Cờ Cá Ngựa — Chibi 3D 🎲🐴
 
-Giao diện HTML/CSS/JavaScript thuần để duyệt UI, dựa trên mockup đã chốt tại `mockups/approved-chibi-3d-avatar.webp`. **Chưa kết nối Firebase, chưa có tài khoản thật, ví điểm, multiplayer hoặc game engine.**
+Website: **https://hanfun.github.io/parcheesi/**  
+GitHub: https://github.com/hanfun/parcheesi
 
-## Chạy nhanh
+## Trạng thái
+
+**Đã có bản chơi offline MVP** cho 2–4 người luân phiên trên cùng một máy. Giao diện sảnh, phòng, tài khoản, điểm và bảng xếp hạng vẫn là mẫu UI, **không phải multiplayer online thật**.
+
+### Đã triển khai
+
+- Bàn cờ 15×15 tương tác với 4 khu chuồng và 52 ô đường chạy.
+- 4 quân/người, chuyển lượt, tung xúc xắc, chọn quân đi hợp lệ, xuất quân, đá quân, vào đường đích và nhận biết thắng cuộc.
+- **Xúc xắc 3D**: lăn/xoay trong ~950 ms và hiển thị mặt 1–6 tương ứng kết quả.
+- **Âm thanh tung xúc xắc** mô phỏng tiếng va chạm, âm di chuyển, đá quân và thắng cuộc bằng Web Audio API; công tắc tắt/bật âm thanh có lưu trên thiết bị. Không cần tải SFX bên ngoài.
+- Quân ngựa chibi di chuyển từng ô, highlight quân có thể chọn, responsive và ưu tiên màn hình dọc.
+- Giữ ảnh thiết kế chibi đã duyệt dưới dạng minh họa; bàn cờ tương tác dùng lưới có tọa độ riêng để bảo đảm chọn và đi đúng ô.
+- Hai giao diện Cơ bản/Vui nhộn; **các ô bẫy, skill, quà tặng ở chế độ Vui nhộn chưa có tác dụng game logic**.
+
+### Luật bản thử nghiệm `vietnamese-offline-mvp-v1`
+
+1. Mỗi lượt tung **1 xúc xắc 1–6**; phải tung **6 mới xuất 1 quân**.
+2. Tung **6** được tung tiếp sau khi di chuyển, kể cả không còn nước hợp lệ.
+3. Nếu có nước hợp lệ, nhấn quân phát sáng để đi. Nếu không có, tự động chuyển lượt (hoặc giữ lượt khi ra 6).
+4. Đến đúng ô đường chạy đang có quân đối thủ thì đá về chuồng. Không cho 2 quân cùng màu đứng chung một ô đường chạy.
+5. Vào đường đích cần đúng số bước; đưa đủ 4 quân vào đích là thắng.
+6. **Chưa có** ô an toàn, cản đường, luật chuồng 6–5–4–3 đặc thù, đồng bộ online hay kỹ năng. Đây là ruleset thử nghiệm, cần chốt với luật cờ cá ngựa Việt Nam trước khi dùng cho thi đấu/online.
+
+## Chạy local
 
 ```bash
+git clone https://github.com/hanfun/parcheesi.git
+cd parcheesi
 python3 -m http.server 8080
 # Mở http://localhost:8080
 ```
 
-Hoặc mở `index.html` trực tiếp (một số trình duyệt có thể hạn chế module JS qua `file://`). Không cần `npm install`.
+Không cần `npm install` để chơi. Sử dụng trình duyệt hiện đại có ES Modules. Tương tác đầu tiên với nút "Tung xúc xắc" sẽ kích hoạt âm thanh; trên điện thoại cần đảm bảo máy không đang tắt tiếng.
+
+## Kiểm thử logic
+
+Yêu cầu Node.js mới:
+
+```bash
+node --test tests/game-engine.test.mjs
+```
+
+- `assets/game-engine.js`: logic offline tách biệt UI.
+- `assets/game-audio.js`: âm thanh tổng hợp, bật/tắt.
+- `app.js`: view và sự kiện UI.
+- `styles.css`: giao diện, hiệu ứng 3D và ngựa di chuyển.
 
 ## GitHub Pages
 
-Website demo (sau khi bật Pages): **https://hanfun.github.io/parcheesi/**.
+GitHub Actions ở [`.github/workflows/deploy-pages.yml`](./.github/workflows/deploy-pages.yml) tự triển khai mỗi lần cập nhật `main`. Nếu chưa bật Pages, mở [Settings → Pages](https://github.com/hanfun/parcheesi/settings/pages) và chọn **GitHub Actions**.
 
-**Đã có GitHub Actions tự động deploy tại [`.github/workflows/deploy-pages.yml`](./.github/workflows/deploy-pages.yml)**. Người sở hữu repository cần thực hiện bật GitHub Pages lần đầu:
+## Lộ trình tiếp theo
 
-1. Mở [Settings → Pages](https://github.com/hanfun/parcheesi/settings/pages).
-2. Trong **Build and deployment → Source**, chọn **GitHub Actions** (không chọn `Deploy from a branch`).
-3. Mở [Actions → Deploy HTML UI to GitHub Pages](https://github.com/hanfun/parcheesi/actions/workflows/deploy-pages.yml) và chọn **Run workflow** (nhánh `main`) nếu workflow chưa chạy thành công.
-4. Mở URL demo khi trang Actions báo đã deploy thành công.
+- Chốt luật Việt Nam và sơ đồ ô tương ứng với ảnh thiết kế đã duyệt.
+- Hoàn thiện skill, bẫy, ô may mắn và hiệu ứng đặc biệt cho map vui nhộn.
+- Thay hình minh họa bàn cờ bằng bộ thành phần đồ họa dùng chung với bàn tương tác.
+- Tài khoản thật, phòng online nhiều thiết bị, chat, đồng bộ trạng thái server-authoritative; không dùng trạng thái client để quyết định kết quả xúc xắc online.
 
-Workflow không cần `npm install` và chỉ publish các file tĩnh `index.html`, `styles.css`, `app.js`, `.nojekyll` và `assets/hero-garden.webp` để tránh xuất bản các tài liệu nội bộ. **Không có Firebase hoặc multiplayer thật** ở phiên bản UI này.
-
-## Màn hình
-
-- Đăng nhập / tạo tài khoản (chỉ xác thực biểu mẫu giả lập, không gửi và không lưu mật khẩu).
-- Trang chủ / sảnh chibi 3D.
-- Danh sách phòng: tìm kiếm, lọc theo chế độ, trạng thái mẫu.
-- Tạo phòng: tên, mật khẩu tùy chọn, mode, số người, điểm, thời gian, tỉ lệ chia điểm.
-- Chọn map: 2 cơ bản + 4 vui nhộn, xem bàn cờ nhỏ.
-- Phòng chờ: thành viên mẫu, sẵn sàng, sao chép mã phòng.
-- Màn chơi mẫu: **mobile portrait-first**, bàn cờ vuông responsive, xúc xắc demo và nút biểu cảm.
-- Profile: đổi tên và ảnh avatar xem trước, bốn ngựa mang khuôn mặt của người chơi.
-- Bảng xếp hạng mẫu: tổng điểm / tỷ lệ thắng / cấp độ.
-
-## UX mobile
-
-- Desktop: sidebar trái, màn hình nội dung rộng.
-- Mobile: menu cố định dưới màn hình; thẻ co thành một cột.
-- **Trong game trên điện thoại: ưu tiên dọc (portrait)**; bàn cờ vuông co theo chiều ngang, nút xúc xắc và skill bên dưới. Nếu thiết bị ở **landscape thấp**, hiện lời nhắc xoay dọc. Trình duyệt web không bảo đảm có thể khóa hướng màn hình bằng JS.
-- Có hỗ trợ `prefers-reduced-motion` và tương tác bằng bàn phím.
-
-## Lưu ý bảo mật và nghiệp vụ
-
-- Sign-in chỉ là trạng thái demo trong bộ nhớ; tên, avatar và lựa chọn map được lưu `localStorage` để xem lại trên chính thiết bị. **Không lưu mật khẩu**.
-- Dữ liệu phòng, điểm và bảng xếp hạng đều mô phỏng. Không tạo giao dịch điểm.
-- Bàn cờ 15×15 chỉ là **layout tham khảo**, chưa xác thực đường đi hoặc cách thắng theo luật Cờ Cá Ngựa Việt Nam.
-- Những tính năng online cần Auth, security rules, backend đáng tin cậy cho tung xúc xắc, di chuyển, ví điểm và thưởng hằng ngày.
-
-## Công việc tiếp theo
-
-1. Duyệt từng màn hình desktop/mobile, vị trí avatar ngựa và giao diện bàn cờ dọc.
-2. Tách giao diện thành React components theo kiến trúc đã định.
-3. Hoàn thiện đặc tả luật game, bản đồ và bộ kiểm thử.
-4. Làm offline trước; tích hợp Auth và Firebase online sau.
+> Phòng, tài khoản, điểm số, mật khẩu và xếp hạng trên màn hình demo hiện tại chưa có server thực. Không có thanh toán hoặc giao dịch điểm.
