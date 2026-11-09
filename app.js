@@ -1,3 +1,4 @@
+import {mount3DBoard,dispose3DBoard,sync3DBoard} from './assets/game-3d.js';
 import {createMatch,activeColor,coordinate,legalMoves,roll,move,rollFair,COLOR_NAMES} from './assets/game-engine.js';
 import {gameAudio} from './assets/game-audio.js';
 /** Cờ Cá Ngựa • Offline playable MVP + prototype sảnh/phòng.
@@ -209,7 +210,7 @@ function game(){
    <div class="game-players">${playerCards}</div>
    <div class="game-board-wrap">
      <div class="board-heading"><div><b>${mode==='fun'?'Vườn ngựa vui nhộn':'Đường đua ngựa con'}</b><small>${esc(chosenMap.name)} • Chạm quân sáng lên để đi</small></div><span class="tag ${mode==='fun'?'pink':'blue'}">🐴 Bản chơi được</span></div>
-     <div class="game-board interactive-board approved-board ${mode==='fun'?'fun-mode':''}" style="--board-art:url(\'${boardArt}\')"><img class="board-art-base" src="${boardArt}" alt="" aria-hidden="true" draggable="false"/><div class="board-play-layer">${boardHtml}</div></div>
+     <div class="game-board interactive-board approved-board webgl-enabled ${mode==='fun'?'fun-mode':''}" style="--board-art:url(\'${boardArt}\')"><img class="board-art-base" src="${boardArt}" alt="" aria-hidden="true" draggable="false"/><div class="board-play-layer">${boardHtml}</div></div>
    </div>
 
  </div>
@@ -226,10 +227,18 @@ function game(){
  </div></div>`;
 }
 function render(){
+ dispose3DBoard();
  const views={home,auth,rooms,create,maps,profile,ranking,lobby,game};
  const view=state.view in views?state.view:'home';
  const gameMode=view==='game'; document.body.classList.toggle('in-game',gameMode);
  app.innerHTML=`<div class="page"><div class="app-shell">${sidebar()}<main class="body-area">${header()}<div class="content">${views[view]()}</div></main></div>${bottomNav()}</div>`;
+ if(view==='game'&&localMatch){
+  const host=app.querySelector('.webgl-enabled');
+  mount3DBoard(host,localMatch,coordinate,state.gamePreviewMode||'basic',(color,index)=>{
+   const piece=app.querySelector(`[data-pony-color="${color}"][data-pony-index="${index}"]`);
+   if(piece&&!piece.disabled)piece.click();
+  });
+ }
 }
 function toast(text){
  const holder=document.querySelector('#toast-root');holder.textContent='';const d=document.createElement('div');d.className='toast';d.textContent=text;holder.appendChild(d);setTimeout(()=>{if(d.isConnected)d.remove()},3200);
@@ -322,7 +331,7 @@ app.addEventListener('click',async e=>{
        if(step%2===0)gameAudio.play('move');
        setTimeout(()=>animateStep(step+1),135);
      }else{
-       localMatch=result.game;gameBusy=false;
+       localMatch=result.game;sync3DBoard(localMatch);gameBusy=false;
        if(result.victory)gameAudio.play('win');
        else if(result.captured.length)gameAudio.play('capture');
        else if(result.finished)gameAudio.play('finish');
