@@ -407,3 +407,18 @@ body.in-game .dice-stage.is-rolling .dice-cube{animation:dice-tumble .95s cubic-
  body.in-game .pony-piece.can-move,body.in-game .pony-piece.is-hopping{animation:none}
  body.in-game .pony-piece{transition:none}
 }
+
+/* Approved board art is the primary play surface, not a thumbnail. The
+   logical 15x15 layer remains aligned for pointer input and horse movement. */
+body.in-game .interactive-board.approved-board{padding:0;border:6px solid #b98250;border-radius:24px;aspect-ratio:1;overflow:hidden;background:#e6c392;box-shadow:0 9px 0 #9c663c,0 20px 32px #66432b42}
+body.in-game .approved-board .board-art-base{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;z-index:0;pointer-events:none}
+body.in-game .approved-board .board-play-layer{position:absolute;inset:0;z-index:2}
+body.in-game .approved-board .map-live{width:100%;height:100%;aspect-ratio:1;border:0;border-radius:0;box-shadow:none;background:transparent;gap:0;overflow:visible}
+body.in-game .approved-board .square{border:1px solid transparent!important;border-radius:0;box-shadow:none!important;background:transparent!important;opacity:1}
+body.in-game .approved-board .square .token{display:none}
+body.in-game .approved-board .real-ponies{z-index:10}
+body.in-game .approved-board .pony-piece{width:7.7%;background:radial-gradient(circle at 30% 12%,#fffefa,#fff0ce 65%,var(--pony-color));box-shadow:0 3px 0 #956c48,0 6px 9px #4d382d8a;filter:drop-shadow(0 3px 2px #65452560)}
+body.in-game .approved-board .pony-piece.can-move{box-shadow:0 0 0 3px #ffdf61,0 5px 12px #704f36aa}
+body.in-game .approved-board .pony-piece:focus-visible{outline:3px solid #4933ca;outline-offset:3px}
+body.in-game .approved-board .pony-piece img{width:116%;height:116%}
+@media(max-width:420px){body.in-game .interactive-board.approved-board{border-width:4px;border-radius:16px}body.in-game .approved-board .pony-piece{width:8%}}
