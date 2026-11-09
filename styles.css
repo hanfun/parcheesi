@@ -422,3 +422,9 @@ body.in-game .approved-board .pony-piece.can-move{box-shadow:0 0 0 3px #ffdf61,0
 body.in-game .approved-board .pony-piece:focus-visible{outline:3px solid #4933ca;outline-offset:3px}
 body.in-game .approved-board .pony-piece img{width:116%;height:116%}
 @media(max-width:420px){body.in-game .interactive-board.approved-board{border-width:4px;border-radius:16px}body.in-game .approved-board .pony-piece{width:8%}}
+
+/* WebGL renderer replaces the image/grid when available; 2D remains fallback. */
+body.in-game .webgl-enabled{position:relative;aspect-ratio:1;overflow:hidden}
+body.in-game .webgl-enabled .board-webgl{position:absolute;inset:0;width:100%;height:100%;z-index:5;display:block;touch-action:manipulation;cursor:pointer}
+body.in-game .webgl-enabled:has(.board-webgl) .board-art-base,
+body.in-game .webgl-enabled:has(.board-webgl) .board-play-layer{visibility:hidden}
