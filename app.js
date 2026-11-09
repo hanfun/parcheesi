@@ -200,6 +200,7 @@ function game(){
      </button>`;
  })).join('');
  const boardHtml=mapSquares(chosenMap.id,true).replace(/<\/div>$/,`<div class="real-ponies">${ponies}</div></div>`);
+ const boardArt=mode==='fun'?'./assets/design/board-fun.webp':'./assets/design/board-classic.webp';
  const help=mode==='fun'?'Ô may mắn và bẫy đang là phần trang trí; skill sẽ được phát triển sau.':'Luật thử nghiệm: tung 6 để xuất quân, 6 được thêm lượt, đá ngựa khi đến đúng ô.';
  return `<div class="rotate-alert"><div><div class="rotate-icon">📱↩️</div><h2>Xoay điện thoại dọc nhé!</h2><p>Để bàn cờ dễ theo dõi hơn 🌷</p><button class="btn btn-violet" data-action="leave-game">Về trang chủ</button></div></div>
  <div class="section-heading"><div><h2>🎲 ${esc(room.name)}</h2><p>Chơi offline 2–4 người trên cùng thiết bị • Không cần đăng nhập</p></div><button class="btn btn-soft btn-sm" data-action="leave-game">Thoát ván</button></div>
@@ -208,9 +209,9 @@ function game(){
    <div class="game-players">${playerCards}</div>
    <div class="game-board-wrap">
      <div class="board-heading"><div><b>${mode==='fun'?'Vườn ngựa vui nhộn':'Đường đua ngựa con'}</b><small>${esc(chosenMap.name)} • Chạm quân sáng lên để đi</small></div><span class="tag ${mode==='fun'?'pink':'blue'}">🐴 Bản chơi được</span></div>
-     <div class="game-board interactive-board ${mode==='fun'?'fun-mode':''}">${boardHtml}</div>
+     <div class="game-board interactive-board approved-board ${mode==='fun'?'fun-mode':''}" style="--board-art:url(\'${boardArt}\')"><img class="board-art-base" src="${boardArt}" alt="" aria-hidden="true" draggable="false"/><div class="board-play-layer">${boardHtml}</div></div>
    </div>
-   <div class="approved-art-caption"><img src="${mode==='fun'?'./assets/design/board-fun.webp':'./assets/design/board-classic.webp'}" alt="Thiết kế minh họa chibi 3D đã duyệt" loading="lazy"/><span>🎨 Hình minh họa phong cách bàn cờ đã duyệt</span></div>
+
  </div>
  <div class="card game-controls">
    <div class="mode-banner ${mode}"><div><b>${mode==='fun'?'🎉 Vui nhộn':'🎯 Cơ bản'}</b><p>${esc(help)}</p></div></div>
