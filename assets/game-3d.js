@@ -1,6 +1,6 @@
 /* Real-time WebGL game board. Geometry is deliberately procedural so GitHub Pages
  * needs no external binary models. Replace horse meshes with GLB assets later. */
-let active=null,threePromise=null;
+let active=null,threePromise=null,lastAngle=0,hasAngle=false;
 const palette={blue:0x58b7ef,green:0x64cda0,red:0xf17c89,yellow:0xf7cb61};
 const rotations={blue:0,green:Math.PI/2,yellow:Math.PI,red:-Math.PI/2};
 function loadThree(){return threePromise??=import('https://esm.sh/three@0.170.0');}
@@ -84,13 +84,13 @@ export async function mount3DBoard(host,game,coordinate,mode,choose){
  renderer.domElement.addEventListener('pointerup',pointer);
  let width=0,frame=0,disposed=false,target=rotations[game.players[game.turn]]||0;
  // Keep a stable orientation when players change; animate shortest rotation.
- let angle=target;world.rotation.y=angle;
+ let angle=hasAngle?lastAngle:target;world.rotation.y=angle;
  function resize(){const w=host.clientWidth,h=host.clientHeight;if(w!==width){width=w;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();}}
  const clock=new T.Clock();
  function tick(){if(disposed)return;frame=requestAnimationFrame(tick);resize();
   const delta=Math.min(clock.getDelta(),.05);
   angle+=Math.atan2(Math.sin(target-angle),Math.cos(target-angle))*Math.min(1,delta*3.3);
-  world.rotation.y=angle;
+  world.rotation.y=angle;lastAngle=angle;hasAngle=true;
   ponies.forEach((p,i)=>{p.position.y=.29+Math.sin(performance.now()*.0025+i)*.035;});
   renderer.render(scene,camera);
  }
