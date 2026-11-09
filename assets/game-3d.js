@@ -1,14 +1,15 @@
 /* Real-time WebGL game board. Geometry is deliberately procedural so GitHub Pages
  * needs no external binary models. Replace horse meshes with GLB assets later. */
-let active=null,threePromise=null,lastAngle=0,hasAngle=false;
+let active=null,threePromise=null,lastAngle=0,hasAngle=false,mountVersion=0;
 const palette={blue:0x58b7ef,green:0x64cda0,red:0xf17c89,yellow:0xf7cb61};
 const rotations={blue:0,green:Math.PI/2,yellow:Math.PI,red:-Math.PI/2};
 function loadThree(){return threePromise??=import('https://esm.sh/three@0.170.0');}
 export async function mount3DBoard(host,game,coordinate,mode,choose){
+ const version=++mountVersion;
  if(active){active.dispose();active=null;}
  if(!host||!host.isConnected)return;
  let T;try{T=await loadThree();}catch(e){console.warn('3D unavailable, showing 2D board',e);return;}
- if(!host.isConnected)return;
+ if(!host.isConnected||version!==mountVersion)return;
  const scene=new T.Scene();scene.background=new T.Color(mode==='fun'?0xfce7ef:0xe2f3ed);
  const camera=new T.PerspectiveCamera(39,1,.1,150);
  camera.position.set(0,20,23);camera.lookAt(0,0,0);
@@ -107,5 +108,5 @@ export async function mount3DBoard(host,game,coordinate,mode,choose){
  };
  active=api;return api;
 }
-export function dispose3DBoard(){active?.dispose();active=null;}
+export function dispose3DBoard(){mountVersion++;active?.dispose();active=null;}
 export function sync3DBoard(game){active?.sync(game);}
