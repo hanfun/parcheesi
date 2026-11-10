@@ -17,6 +17,16 @@ GitHub: https://github.com/hanfun/parcheesi
 - Giữ ảnh thiết kế chibi đã duyệt dưới dạng minh họa; bàn cờ tương tác dùng lưới có tọa độ riêng để bảo đảm chọn và đi đúng ô.
 - Hai giao diện Cơ bản/Vui nhộn; **các ô bẫy, skill, quà tặng ở chế độ Vui nhộn chưa có tác dụng game logic**.
 
+### Bản cập nhật 10/11/2026 — giao diện khớp thiết kế hơn
+
+- **3D tương tác**: dựng bàn cờ mô hình với khung gỗ, chuồng nổi, hoa cỏ, ngựa chibi nhiều chi tiết, biểu tượng avatar trên đầu ngựa.
+- **Chuyển sang Thiết kế gốc**: dùng đúng ảnh WebP đã duyệt làm mặt bàn; tương tác xúc xắc, chọn quân và di chuyển vẫn hoạt động.
+- **Ngựa 3D nhảy từng ô** tương ứng với từng bước từ Rules Engine; khi đổi lượt bàn tự xoay về người tiếp theo.
+- Hai chế độ **Cơ bản / Vui nhộn** hiện dùng chung luật offline; các ô hiệu ứng vui nhộn chỉ là đồ họa.
+- Nếu WebGL/Three.js không tải được, game tiếp tục hiển thị giao diện artwork 2D có thể chơi.
+
+**Giới hạn QA:** Chưa kiểm chứng hình ảnh trên tất cả thiết bị; ảnh artwork có các ngựa mẫu nằm sẵn trong hình, nên chế độ Thiết kế gốc có thể nhìn thấy ngựa mẫu bên dưới quân tương tác. Chưa có socket multiplayer, chat thật hay skill. Bản 3D và artwork vẫn cần được người dùng đối chiếu trực quan với mockup đã duyệt.
+
 ### Luật bản thử nghiệm `vietnamese-offline-mvp-v1`
 
 1. Mỗi lượt tung **1 xúc xắc 1–6**; phải tung **6 mới xuất 1 quân**.
