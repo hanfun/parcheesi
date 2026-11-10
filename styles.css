@@ -428,3 +428,42 @@ body.in-game .webgl-enabled{position:relative;aspect-ratio:1;overflow:hidden}
 body.in-game .webgl-enabled .board-webgl{position:absolute;inset:0;width:100%;height:100%;z-index:5;display:block;touch-action:manipulation;cursor:pointer}
 body.in-game .webgl-enabled:has(.board-webgl) .board-art-base,
 body.in-game .webgl-enabled:has(.board-webgl) .board-play-layer{visibility:hidden}
+
+/* View comparison: 3D gameplay and playable art from the approved storyboard. */
+body.in-game .board-view-switch{
+ display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px;
+ width:fit-content;max-width:100%;margin:0 auto 15px;padding:7px 10px;
+ border:3px solid white;border-radius:19px;
+ background:linear-gradient(130deg,#fff9ee,#fff1e1);
+ box-shadow:0 4px 0 #d9bba1,0 9px 18px #87644a22
+}
+body.in-game .board-view-switch>span{
+ color:#7c6880;font:900 12px 'Nunito',sans-serif;margin:0 6px
+}
+body.in-game .board-view-option{
+ border:2px solid transparent;border-radius:13px;
+ background:#fff;color:#73658a;min-height:37px;
+ padding:8px 14px;font:900 13px 'Nunito',sans-serif;
+ cursor:pointer;box-shadow:0 2px 0 #c7b9ab
+}
+body.in-game .board-view-option.active{
+ background:linear-gradient(125deg,#8a79dc,#6c96e6);border-color:#fff;
+ color:white;box-shadow:0 3px 0 #625fa9
+}
+body.in-game .board-view-option:focus-visible{
+ outline:3px solid #5931b5;outline-offset:3px
+}
+body.in-game .board-view-option:disabled{opacity:.55;cursor:wait}
+body.in-game .webgl-enabled .board-webgl{
+ border-radius:16px;outline:0;
+ animation:game-webgl-in .22s ease-out both
+}
+@keyframes game-webgl-in{from{opacity:0}to{opacity:1}}
+@media(max-width:480px){
+ body.in-game .board-view-switch{width:100%;gap:5px;padding:6px 5px;margin-bottom:10px}
+ body.in-game .board-view-switch>span{flex:0 0 100%;text-align:center;font-size:11px}
+ body.in-game .board-view-option{flex:1;min-width:0;padding:7px 3px;font-size:11px}
+}
+@media(prefers-reduced-motion:reduce){
+ body.in-game .webgl-enabled .board-webgl{animation:none}
+}
