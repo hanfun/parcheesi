@@ -1,4 +1,4 @@
-import {mount3DBoard,dispose3DBoard,sync3DBoard} from './assets/game-3d.js';
+import {mount3DBoard,dispose3DBoard,sync3DBoard,step3DBoard} from './assets/game-3d-v2.js';
 import {createMatch,activeColor,coordinate,legalMoves,roll,move,rollFair,COLOR_NAMES} from './assets/game-engine.js';
 import {gameAudio} from './assets/game-audio.js';
 /** Cờ Cá Ngựa • Offline playable MVP + prototype sảnh/phòng.
@@ -36,17 +36,17 @@ const defaultState = {
  currentRoom:null,roomFilter:'all',query:'',rankFilter:'score',mode:'basic',map:'garden',
  create:{name:'Phòng Của Tôi',password:'',mode:'basic',max:4,stake:100,time:30,reward:'50-30-20-0',map:'garden'},
  skin:'funny',lobbyReady:false,live:false,dice:1,diceRolls:0,skillUsed:false,dialog:null,
- gamePreviewMode:'basic', localRooms:[]
+ gamePreviewMode:'basic', boardView:'3d', localRooms:[]
 };
 const app=document.querySelector('#app');
 let state={...defaultState};
 let localMatch=null,gameBusy=false,gameEpoch=0;
 try { const v=JSON.parse(localStorage.getItem(STORAGE)||'{}'); state={...state,...v,create:{...defaultState.create,...(v.create||{})},view:'home',currentRoom:null,live:false,lobbyReady:false}; }catch{}
 function save(){
-  const {name,avatar,score,signedIn,skin,mode,map,create,localRooms,gamePreviewMode}=state;
+  const {name,avatar,score,signedIn,skin,mode,map,create,localRooms,gamePreviewMode,boardView}=state;
   // Never persist passwords or authentication claims: sign-in is only a transient demo session.
   const safeCreate={...create,password:''};
-  localStorage.setItem(STORAGE,JSON.stringify({name,avatar,score,skin,mode,map,create:safeCreate,localRooms:localRooms.map(({password,...r})=>r),gamePreviewMode}));
+  localStorage.setItem(STORAGE,JSON.stringify({name,avatar,score,skin,mode,map,create:safeCreate,localRooms:localRooms.map(({password,...r})=>r),gamePreviewMode,boardView}));
 }
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=n=>Number(n||0).toLocaleString('vi-VN');
@@ -206,11 +206,12 @@ function game(){
  return `<div class="rotate-alert"><div><div class="rotate-icon">📱↩️</div><h2>Xoay điện thoại dọc nhé!</h2><p>Để bàn cờ dễ theo dõi hơn 🌷</p><button class="btn btn-violet" data-action="leave-game">Về trang chủ</button></div></div>
  <div class="section-heading"><div><h2>🎲 ${esc(room.name)}</h2><p>Chơi offline 2–4 người trên cùng thiết bị • Không cần đăng nhập</p></div><button class="btn btn-soft btn-sm" data-action="leave-game">Thoát ván</button></div>
  <div class="game-mode-tabs"><button class="segment ${mode==='basic'?'active':''}" data-game-mode="basic" ${gameBusy?'disabled':''}>🎯 Cơ bản</button><button class="segment ${mode==='fun'?'active':''}" data-game-mode="fun" ${gameBusy?'disabled':''}>✨ Vui nhộn</button></div>
+ <div class="board-view-switch" role="group" aria-label="Kiểu bàn cờ"><span>Hiển thị bàn cờ</span><button type="button" class="board-view-option ${state.boardView==='3d'?'active':''}" data-board-view="3d" ${gameBusy?'disabled':''}>🧩 3D tương tác</button><button type="button" class="board-view-option ${state.boardView==='art'?'active':''}" data-board-view="art" ${gameBusy?'disabled':''}>🎨 Thiết kế gốc</button></div>
  <div class="game-layout playable-layout"><div class="stack">
    <div class="game-players">${playerCards}</div>
    <div class="game-board-wrap">
      <div class="board-heading"><div><b>${mode==='fun'?'Vườn ngựa vui nhộn':'Đường đua ngựa con'}</b><small>${esc(chosenMap.name)} • Chạm quân sáng lên để đi</small></div><span class="tag ${mode==='fun'?'pink':'blue'}">🐴 Bản chơi được</span></div>
-     <div class="game-board interactive-board approved-board webgl-enabled ${mode==='fun'?'fun-mode':''}" style="--board-art:url(\'${boardArt}\')"><img class="board-art-base" src="${boardArt}" alt="" aria-hidden="true" draggable="false"/><div class="board-play-layer">${boardHtml}</div></div>
+     <div class="game-board interactive-board approved-board ${state.boardView==='3d'?'webgl-enabled':''} ${mode==='fun'?'fun-mode':''}" style="--board-art:url(\'${boardArt}\')"><img class="board-art-base" src="${boardArt}" alt="" aria-hidden="true" draggable="false"/><div class="board-play-layer">${boardHtml}</div></div>
    </div>
 
  </div>
@@ -223,7 +224,7 @@ function game(){
    ${match.winner?`<div class="game-winner">🏆 ${COLOR_NAMES[match.winner]} đã thắng cuộc!</div>`:''}
    <div class="mini-stats"><div class="mini-stat"><span>🎲 Lượt tung</span><b>${match.rolls}</b></div><div class="mini-stat"><span>🏇 Đã về đích</span><b>${match.players.reduce((sum,c)=>sum+match.tokens[c].filter(p=>p===57).length,0)}</b></div></div>
    <div class="game-actions"><button class="btn btn-mint btn-sm" data-action="restart-local">🔄 Chơi ván mới</button><button class="btn btn-soft btn-sm" data-action="game-emote">😆 Biểu cảm</button><button class="btn btn-soft btn-sm" data-nav="profile">🦄 Avatar</button></div>
-   <p class="small muted" style="margin:0">Đây là bản game offline đầu tiên. Luật đặc thù, kỹ năng, chat và chơi online sẽ cập nhật ở các giai đoạn tiếp theo.</p>
+   <p class="small muted" style="margin:0">Bàn cờ 3D có animation từng bước; nút Thiết kế gốc cho phép chơi trực tiếp trên artwork đã duyệt. Chế độ vui nhộn chỉ đổi hình ảnh; chat online và kỹ năng chưa được triển khai.</p>
  </div></div>`;
 }
 function render(){
@@ -232,12 +233,12 @@ function render(){
  const view=state.view in views?state.view:'home';
  const gameMode=view==='game'; document.body.classList.toggle('in-game',gameMode);
  app.innerHTML=`<div class="page"><div class="app-shell">${sidebar()}<main class="body-area">${header()}<div class="content">${views[view]()}</div></main></div>${bottomNav()}</div>`;
- if(view==='game'&&localMatch){
+ if(view==='game'&&localMatch&&state.boardView==='3d'){
   const host=app.querySelector('.webgl-enabled');
   mount3DBoard(host,localMatch,coordinate,state.gamePreviewMode||'basic',(color,index)=>{
    const piece=app.querySelector(`[data-pony-color="${color}"][data-pony-index="${index}"]`);
    if(piece&&!piece.disabled)piece.click();
-  });
+  },{avatar:state.avatar,labels:{blue:state.name||'Bạn',green:'Người chơi 2',red:'Người chơi 3',yellow:'Người chơi 4'}});
  }
 }
 function toast(text){
@@ -328,6 +329,7 @@ app.addEventListener('click',async e=>{
        const [r,c]=result.route[step];
        button.style.setProperty('--pony-x',((c+.5)/15*100)+'%');
        button.style.setProperty('--pony-y',((r+.5)/15*100)+'%');
+     if(state.boardView==='3d')step3DBoard(button.dataset.ponyColor,index,r,c);
        if(step%2===0)gameAudio.play('move');
        setTimeout(()=>animateStep(step+1),135);
      }else{
@@ -340,6 +342,7 @@ app.addEventListener('click',async e=>{
    };
    animateStep(0);return;
  }
+ if(button.dataset.boardView){if(gameBusy)return;state.boardView=button.dataset.boardView==='art'?'art':'3d';save();render();return;}
  if(button.dataset.gameMode){state.gamePreviewMode=button.dataset.gameMode;save();render();return;}
  if(button.dataset.selectMap){state.create.map=button.dataset.selectMap;save();render();return;}
  if(button.dataset.choice){
