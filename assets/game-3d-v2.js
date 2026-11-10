@@ -183,15 +183,16 @@ export async function mount3DBoard(host,game,coordinate,mode,choose,options={}){
   for(let i=0;i<4;i++)sphere(.115,lightColors[color],.13-i*.105,1.69-i*.09,0,group);
   const tail=cone(.17,.52,lightColors[color],-.53,.96,0,group);tail.rotation.z=-1.1;
   sphere(.12,m.gold,.38,.72,-.3,group);
-  const circle=mesh(new T.CircleGeometry(.36,28),new T.MeshBasicMaterial({map:avatars.get(color),transparent:true,side:T.DoubleSide}),group);
-  circle.position.set(.15,2.13,0);circle.rotation.y=Math.PI/2;
+  const portrait=new T.Sprite(new T.SpriteMaterial({map:avatars.get(color),transparent:true,depthWrite:false}));
+  portrait.position.set(.30,2.18,.1);portrait.scale.set(.72,.72,1);group.add(portrait);
   // Halo is only visible on legal selections; raycasts still hit the horse meshes.
   const ring=mesh(new T.TorusGeometry(.58,.085,8,32),m.gold,group);
   ring.position.set(0,.23,0);ring.rotation.x=Math.PI/2;
   group.scale.setScalar(.69);
   const [r,c]=coordinate(color,progress,index);
-  group.position.set(c-7,.40,r-7);
-  const entry={group,color,index,ring,baseY:.40,hop:0,selectable:false};
+  const baseY=progress<0?.69:.37;
+  group.position.set(c-7,baseY,r-7);
+  const entry={group,color,index,ring,baseY,hop:0,selectable:false};
   ponies.push(entry);lookup.set(color+':'+index,entry);
  }
  for(const color of game.players)game.tokens[color].forEach((p,i)=>pony(color,i,p));
@@ -242,13 +243,14 @@ export async function mount3DBoard(host,game,coordinate,mode,choose,options={}){
   step(color,index,r,c){
    const p=lookup.get(color+':'+index);
    if(!p)return;
-   p.group.position.x=c-7;p.group.position.z=r-7;p.hop=1;
+   p.group.position.x=c-7;p.group.position.z=r-7;p.baseY=.37;p.hop=1;
   },
   sync(next){
    for(const p of ponies){
     const progress=next.tokens[p.color]?.[p.index]??-1;
     const [r,c]=coordinate(p.color,progress,p.index);
     p.group.position.x=c-7;p.group.position.z=r-7;
+    p.baseY=progress<0?.69:.37;
    }
    selectable(next);target=turns[next.players[next.turn]]??0;
   },
@@ -265,6 +267,7 @@ export async function mount3DBoard(host,game,coordinate,mode,choose,options={}){
    materials.add(leaf);materials.add(pink);materials.add(sunny);
    for(const mt of materials)mt.dispose();
    for(const texture of avatars.values())texture.dispose();
+   for(const pony of ponies)pony.group.traverse(o=>{if(o.isSprite)o.material.dispose();});
   }
  };
  active=api;
