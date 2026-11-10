@@ -7,7 +7,7 @@ import {legalMoves, TRACK} from './game-engine.js';
 let active=null,loadPromise=null,version=0,lastAngle=0,hasAngle=false;
 const teamHex={blue:0x60b5f4,green:0x73c986,red:0xfa858c,yellow:0xf6c661};
 const turns={blue:0,green:Math.PI/2,yellow:Math.PI,red:-Math.PI/2};
-const bases={blue:[-4.5,-4.5],green:[4.5,-4.5],red:[-4.5,4.5],yellow:[4.5,4.5]};
+const bases={blue:[-4,-4],green:[4,-4],red:[-4,4],yellow:[4,4]};
 const getThree=()=>loadPromise??=import('https://esm.sh/three@0.170.0');
 
 export async function mount3DBoard(host,game,coordinate,mode,choose,options={}){
